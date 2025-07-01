@@ -17,15 +17,55 @@ model User {
   password          String
   firstName         String?
   lastName          String?
+  bio               String?   @db.Text
+  profileImage      String?
+  coverImage        String?
   isEmailVerified   Boolean   @default(false)
   isActive          Boolean   @default(true)
   lastLoginAt       DateTime?
+  
+  // Follow relationships
+  followers         Follow[]  @relation("UserFollowers")
+  following         Follow[]  @relation("UserFollowing")
+  
+  // Tweets
+  tweets            Tweet[]
+  
+  // Auth related
   refreshTokens     RefreshToken[]
   passwordResetOTPs PasswordResetOTP[]
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   @@map("users")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Tweet {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isPublic    Boolean  @default(true)
+  likesCount  Int      @default(0)
+  retweetsCount Int    @default(0)
+  repliesCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tweets")
 }
 
 model RefreshToken {

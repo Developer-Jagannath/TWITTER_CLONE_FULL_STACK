@@ -150,6 +150,22 @@ To use Gmail for sending emails (OTP, welcome emails, etc.), you need to set up 
 - `POST /api/auth/logout-all` - Logout from all devices (protected)
 - `GET /api/auth/check-token` - Check token validity
 
+### User Endpoints
+- `POST /api/user/:id/follow` - Follow a user (protected)
+- `POST /api/user/:id/unfollow` - Unfollow a user (protected)
+- `GET /api/user/:id/profile` - Get user profile
+- `GET /api/user/:id/followers?page=1&limit=10` - Get user's followers list
+- `GET /api/user/:id/following?page=1&limit=10` - Get user's following list
+
+### Tweet Endpoints
+- `POST /api/tweet` - Create a new tweet (protected)
+- `PUT /api/tweet/:id` - Update a tweet (protected)
+- `DELETE /api/tweet/:id` - Delete a tweet (protected)
+- `GET /api/tweet/:id` - Get a single tweet
+- `GET /api/tweet/public?page=1&limit=10` - Get public tweets
+- `GET /api/tweet/following?page=1&limit=10` - Get tweets from followed users (protected)
+- `GET /api/tweet/user/:id?page=1&limit=10` - Get user's tweets
+
 ### Example Endpoints
 - `GET /api/example/validate` - Validation error example
 - `GET /api/example/user/:id` - Not found error example
@@ -277,6 +293,58 @@ curl -X POST http://localhost:3000/api/auth/reset-password \
 # Get current user (protected route)
 curl -X GET http://localhost:3000/api/auth/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Follow a user
+curl -X POST http://localhost:3000/api/user/USER_ID/follow \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Unfollow a user
+curl -X POST http://localhost:3000/api/user/USER_ID/unfollow \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get user profile
+curl -X GET http://localhost:3000/api/user/USER_ID/profile
+
+# Get user's followers
+curl -X GET http://localhost:3000/api/user/USER_ID/followers?page=1&limit=10
+
+# Get user's following
+curl -X GET http://localhost:3000/api/user/USER_ID/following?page=1&limit=10
+
+# Create a tweet
+curl -X POST http://localhost:3000/api/tweet \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello Twitter Clone!",
+    "isPublic": true
+  }'
+
+# Update a tweet
+curl -X PUT http://localhost:3000/api/tweet/TWEET_ID \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Updated tweet content!",
+    "isPublic": false
+  }'
+
+# Delete a tweet
+curl -X DELETE http://localhost:3000/api/tweet/TWEET_ID \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get a single tweet
+curl -X GET http://localhost:3000/api/tweet/TWEET_ID
+
+# Get public tweets
+curl -X GET http://localhost:3000/api/tweet/public?page=1&limit=10
+
+# Get tweets from followed users
+curl -X GET http://localhost:3000/api/tweet/following?page=1&limit=10 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Get user's tweets
+curl -X GET http://localhost:3000/api/tweet/user/USER_ID?page=1&limit=10
 ```
 
 ## Build Output

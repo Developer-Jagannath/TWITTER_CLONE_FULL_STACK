@@ -6,6 +6,8 @@ import { config } from './config';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { exampleRouter } from './routes/example';
 import { authRouter } from './routes/auth';
+import userRouter from './routes/user';
+// import tweetRouter from './routes/tweet';
 
 const app = express();
 
@@ -28,6 +30,19 @@ if (config.nodeEnv === 'development') {
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log('🌐 Incoming request:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    path: req.path,
+    params: req.params,
+    query: req.query
+  });
+  next();
+});
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -53,6 +68,12 @@ app.use('/api/example', exampleRouter);
 
 // Authentication routes
 app.use('/api/auth', authRouter);
+
+// User routes (follow/unfollow, profiles)
+app.use('/api/user', userRouter);
+
+// Tweet routes - TEMPORARILY DISABLED
+// app.use('/api/tweet', tweetRouter);
 
 // 404 handler for undefined routes
 app.use('*', notFoundHandler);

@@ -46,12 +46,27 @@ export const safeExecute = async <T>(
 // Request validation utility
 export const validateRequest = (
   req: Request,
-  requiredFields: string[]
+  requiredFields: string[],
+  source: 'body' | 'params' | 'query' | 'all' = 'body'
 ): void => {
   const missingFields: string[] = [];
   
   for (const field of requiredFields) {
-    if (!req.body[field] && req.body[field] !== 0) {
+    let hasField = false;
+    
+    if (source === 'body' || source === 'all') {
+      hasField = hasField || (req.body[field] !== undefined && req.body[field] !== null && req.body[field] !== '');
+    }
+    
+    if (source === 'params' || source === 'all') {
+      hasField = hasField || (req.params[field] !== undefined && req.params[field] !== null && req.params[field] !== '');
+    }
+    
+    if (source === 'query' || source === 'all') {
+      hasField = hasField || (req.query[field] !== undefined && req.query[field] !== null && req.query[field] !== '');
+    }
+    
+    if (!hasField) {
       missingFields.push(field);
     }
   }
