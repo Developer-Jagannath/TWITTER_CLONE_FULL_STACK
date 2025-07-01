@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { config } from './config';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { exampleRouter } from './routes/example';
+import { authRouter } from './routes/auth';
 
 const app = express();
 
@@ -49,6 +50,9 @@ app.get('/api', (req: Request, res: Response) => {
 
 // Example routes with error handling
 app.use('/api/example', exampleRouter);
+
+// Authentication routes
+app.use('/api/auth', authRouter);
 
 // 404 handler for undefined routes
 app.use('*', notFoundHandler);
