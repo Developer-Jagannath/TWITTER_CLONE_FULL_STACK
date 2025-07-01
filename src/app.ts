@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { exampleRouter } from './routes/example';
 
 const app = express();
 
@@ -45,22 +47,13 @@ app.get('/api', (req: Request, res: Response) => {
   });
 });
 
-// 404 handler
-app.use('*', (req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Route not found',
-    path: req.originalUrl
-  });
-});
+// Example routes with error handling
+app.use('/api/example', exampleRouter);
 
-// Global error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err);
-  
-  res.status(500).json({
-    error: config.nodeEnv === 'production' ? 'Internal server error' : err.message,
-    ...(config.nodeEnv === 'development' && { stack: err.stack })
-  });
-});
+// 404 handler for undefined routes
+app.use('*', notFoundHandler);
+
+// Global error handler - must be last
+app.use(errorHandler);
 
 export { app }; 

@@ -12,14 +12,29 @@ A production-ready TypeScript Node.js backend with Express.js, featuring securit
 - ✅ Health check endpoint
 - ✅ Global error handling
 - ✅ Request logging (Morgan)
+- ✅ Centralized error handling system
+- ✅ Type-safe custom error classes
+- ✅ Reusable error utilities
+- ✅ Consistent error responses
 
 ## Project Structure
 
 ```
 src/
-├── index.ts      # Application entry point
-├── app.ts        # Express app configuration
-└── config.ts     # Environment configuration
+├── index.ts                    # Application entry point
+├── app.ts                      # Express app configuration
+├── config.ts                   # Environment configuration
+├── types/
+│   └── errors.ts              # Error type definitions
+├── errors/
+│   ├── AppError.ts            # Custom error classes
+│   └── index.ts               # Error exports
+├── middleware/
+│   └── errorHandler.ts        # Centralized error handling
+├── utils/
+│   └── errorUtils.ts          # Error utility functions
+└── routes/
+    └── example.ts             # Example routes with error handling
 ```
 
 ## Quick Start
@@ -88,7 +103,54 @@ CORS_ORIGIN=*
 
 - `GET /health` - Health check endpoint
 - `GET /api` - API welcome message
+- `GET /api/example/validate` - Validation error example
+- `GET /api/example/user/:id` - Not found error example
+- `GET /api/example/protected` - Authentication error example
+- `POST /api/example/data` - Bad request error example
+- `GET /api/example/error` - Generic error example
 - `GET /*` - 404 handler for undefined routes
+
+## Error Handling System
+
+### Custom Error Classes
+- `AppError` - Base error class with type safety
+- `ValidationError` - For input validation errors
+- `AuthenticationError` - For authentication failures
+- `AuthorizationError` - For permission denied errors
+- `NotFoundError` - For resource not found errors
+- `ConflictError` - For resource conflicts
+- `BadRequestError` - For malformed requests
+- `RateLimitError` - For rate limiting violations
+- `DatabaseError` - For database operation errors
+- `ExternalServiceError` - For third-party service errors
+
+### Error Handling Features
+- **Centralized Error Handler**: All errors are processed through a single middleware
+- **Type-Safe Error Responses**: Consistent error response format with TypeScript types
+- **Environment-Based Logging**: Different error details based on environment
+- **Async Error Wrapper**: Automatic error catching for async route handlers
+- **Reusable Utilities**: Helper functions for common error patterns
+
+### Usage Examples
+
+```typescript
+// Throwing custom errors
+throw new ValidationError('Invalid email format', { field: 'email' });
+throw new NotFoundError('User', { id: '123' });
+throw new AuthenticationError('Invalid token');
+
+// Using async handler
+router.get('/user/:id', asyncHandler(async (req, res) => {
+  const user = await findUser(req.params.id);
+  if (!user) {
+    throw new NotFoundError('User', { id: req.params.id });
+  }
+  res.json({ success: true, data: user });
+}));
+
+// Request validation
+validateRequest(req, ['name', 'email']);
+```
 
 ## Security Features
 
