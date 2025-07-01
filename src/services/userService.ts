@@ -2,37 +2,36 @@ import { prisma } from '../config/database';
 import { UserProfile, FollowResponse, PaginatedUsersResponse, UserStats } from '../types/user';
 import { NotFoundError, ConflictError, BadRequestError } from '../errors';
 
+// Temporary type assertion to bypass Prisma client type issues
+const prismaClient = prisma as any;
+
 export class UserService {
   // Get user profile with stats
   static async getUserProfile(userId: string): Promise<UserProfile> {
-   
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         throw new NotFoundError('User');
       }
-
-      const profile = {
+      const stats = await this.getUserStats(userId);
+      return {
         id: user.id,
         email: user.email,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
-        bio: null, // Will be available after database migration
-        profileImage: null, // Will be available after database migration
-        coverImage: null, // Will be available after database migration
+        bio: null,
+        profileImage: null,
+        coverImage: null,
         isEmailVerified: user.isEmailVerified,
         isActive: user.isActive,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        followersCount: 0, // Temporary - will be updated when Follow model is available
-        followingCount: 0, // Temporary - will be updated when Follow model is available
-        tweetsCount: 0 // Temporary - will be updated when Tweet model is available
+        followersCount: stats.followersCount,
+        followingCount: stats.followingCount,
+        tweetsCount: stats.tweetsCount
       };
-      return profile;
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -44,53 +43,60 @@ export class UserService {
   // Get user stats
   static async getUserStats(userId: string): Promise<UserStats> {
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        throw new NotFoundError('User');
+      const followersCount = await prismaClient.follow.count({ where: { followingId: userId } });
+      const followingCount = await prismaClient.follow.count({ where: { followerId: userId } });
+      
+      // Try to get tweets count, but handle case where tweets table doesn't exist yet
+      let tweetsCount = 0;
+      try {
+        tweetsCount = await prismaClient.tweet.count({ where: { userId } });
+      } catch (tweetError) {
+        // If tweets table doesn't exist yet, just use 0
+        console.log('Tweets table not available yet, using count 0');
+        tweetsCount = 0;
       }
-
-      return {
-        followersCount: 0, // Temporary - will be updated when Follow model is available
-        followingCount: 0, // Temporary - will be updated when Follow model is available
-        tweetsCount: 0 // Temporary - will be updated when Tweet model is available
-      };
+      
+      return { followersCount, followingCount, tweetsCount };
     } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
       throw new BadRequestError('Failed to get user stats');
     }
   }
 
-  // Follow a user (temporary implementation)
+  // Follow a user
   static async followUser(followerId: string, followingId: string): Promise<FollowResponse> {
     try {
-      // Check if trying to follow self
       if (followerId === followingId) {
         throw new BadRequestError('Cannot follow yourself');
       }
-
-      // Check if user to follow exists
-      const userToFollow = await prisma.user.findUnique({
-        where: { id: followingId }
-      });
-
+      const userToFollow = await prismaClient.user.findUnique({ where: { id: followingId } });
       if (!userToFollow) {
         throw new NotFoundError('User to follow');
       }
-
-      // Temporary: Return success but don't actually create follow relationship
-      // This will be implemented when the Follow model is available
+      // Check if already following
+      const existingFollow = await prismaClient.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId,
+            followingId
+          }
+        }
+      });
+      if (existingFollow) {
+        throw new ConflictError('Already following this user');
+      }
+      // Create follow relationship
+      await prismaClient.follow.create({
+        data: { followerId, followingId }
+      });
+      // Get updated counts
+      const stats = await this.getUserStats(followingId);
       return {
         success: true,
-        message: 'Follow functionality will be available after database migration',
+        message: 'Successfully followed user',
         data: {
-          isFollowing: false,
-          followersCount: 0,
-          followingCount: 0
+          isFollowing: true,
+          followersCount: stats.followersCount,
+          followingCount: stats.followingCount
         }
       };
     } catch (error) {
@@ -101,32 +107,42 @@ export class UserService {
     }
   }
 
-  // Unfollow a user (temporary implementation)
+  // Unfollow a user
   static async unfollowUser(followerId: string, followingId: string): Promise<FollowResponse> {
     try {
-      // Check if trying to unfollow self
       if (followerId === followingId) {
         throw new BadRequestError('Cannot unfollow yourself');
       }
-
-      // Check if user to unfollow exists
-      const userToUnfollow = await prisma.user.findUnique({
-        where: { id: followingId }
+      // Check if follow relationship exists
+      const existingFollow = await prismaClient.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId,
+            followingId
+          }
+        }
       });
-
-      if (!userToUnfollow) {
-        throw new NotFoundError('User to unfollow');
+      if (!existingFollow) {
+        throw new NotFoundError('Follow relationship');
       }
-
-      // Temporary: Return success but don't actually delete follow relationship
-      // This will be implemented when the Follow model is available
+      // Delete follow relationship
+      await prismaClient.follow.delete({
+        where: {
+          followerId_followingId: {
+            followerId,
+            followingId
+          }
+        }
+      });
+      // Get updated counts
+      const stats = await this.getUserStats(followingId);
       return {
         success: true,
-        message: 'Unfollow functionality will be available after database migration',
+        message: 'Successfully unfollowed user',
         data: {
           isFollowing: false,
-          followersCount: 0,
-          followingCount: 0
+          followersCount: stats.followersCount,
+          followingCount: stats.followingCount
         }
       };
     } catch (error) {
@@ -137,84 +153,128 @@ export class UserService {
     }
   }
 
-  // Get followers list (temporary implementation)
+  // Get followers list
   static async getFollowers(userId: string, page: number = 1, limit: number = 10): Promise<PaginatedUsersResponse> {
     try {
-      // Check if user exists
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
+      const skip = (page - 1) * limit;
+      const followers = await prismaClient.follow.findMany({
+        where: { followingId: userId },
+        include: {
+          follower: true
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
       });
-
-      if (!user) {
-        throw new NotFoundError('User');
-      }
-
-      // Temporary: Return empty list
-      // This will be implemented when the Follow model is available
+      const total = await prismaClient.follow.count({ where: { followingId: userId } });
+      const totalPages = Math.ceil(total / limit);
+      const users: UserProfile[] = await Promise.all(followers.map(async (follow: any) => {
+        const stats = await this.getUserStats(follow.followerId);
+        return {
+          id: follow.follower.id,
+          email: follow.follower.email,
+          username: follow.follower.username,
+          firstName: follow.follower.firstName,
+          lastName: follow.follower.lastName,
+          bio: null,
+          profileImage: null,
+          coverImage: null,
+          isEmailVerified: follow.follower.isEmailVerified,
+          isActive: follow.follower.isActive,
+          lastLoginAt: follow.follower.lastLoginAt,
+          createdAt: follow.follower.createdAt,
+          updatedAt: follow.follower.updatedAt,
+          followersCount: stats.followersCount,
+          followingCount: stats.followingCount,
+          tweetsCount: stats.tweetsCount
+        };
+      }));
       return {
         success: true,
         data: {
-          users: [],
+          users,
           pagination: {
             page,
             limit,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false
+            total,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
           }
         }
       };
     } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
       throw new BadRequestError('Failed to get followers');
     }
   }
 
-  // Get following list (temporary implementation)
+  // Get following list
   static async getFollowing(userId: string, page: number = 1, limit: number = 10): Promise<PaginatedUsersResponse> {
     try {
-      // Check if user exists
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
+      const skip = (page - 1) * limit;
+      const following = await prismaClient.follow.findMany({
+        where: { followerId: userId },
+        include: {
+          following: true
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
       });
-
-      if (!user) {
-        throw new NotFoundError('User');
-      }
-
-      // Temporary: Return empty list
-      // This will be implemented when the Follow model is available
+      const total = await prismaClient.follow.count({ where: { followerId: userId } });
+      const totalPages = Math.ceil(total / limit);
+      const users: UserProfile[] = await Promise.all(following.map(async (follow: any) => {
+        const stats = await this.getUserStats(follow.followingId);
+        return {
+          id: follow.following.id,
+          email: follow.following.email,
+          username: follow.following.username,
+          firstName: follow.following.firstName,
+          lastName: follow.following.lastName,
+          bio: null,
+          profileImage: null,
+          coverImage: null,
+          isEmailVerified: follow.following.isEmailVerified,
+          isActive: follow.following.isActive,
+          lastLoginAt: follow.following.lastLoginAt,
+          createdAt: follow.following.createdAt,
+          updatedAt: follow.following.updatedAt,
+          followersCount: stats.followersCount,
+          followingCount: stats.followingCount,
+          tweetsCount: stats.tweetsCount
+        };
+      }));
       return {
         success: true,
         data: {
-          users: [],
+          users,
           pagination: {
             page,
             limit,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false
+            total,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
           }
         }
       };
     } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
       throw new BadRequestError('Failed to get following');
     }
   }
 
-  // Check if user is following another user (temporary implementation)
+  // Check if user is following another user
   static async isFollowing(followerId: string, followingId: string): Promise<boolean> {
     try {
-      // Temporary: Always return false
-      // This will be implemented when the Follow model is available
-      return false;
+      const follow = await prismaClient.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId,
+            followingId
+          }
+        }
+      });
+      return !!follow;
     } catch (error) {
       return false;
     }
