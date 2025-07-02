@@ -8,22 +8,25 @@ const router = Router();
 // Public routes (no authentication required)
 router.get('/public', TweetController.getPublicTweets);
 
-// Test route to see if router is working
-router.get('/test', (req, res) => {
-  res.json({ message: 'Tweet router is working!' });
-});
 
+// User tweets
 router.get('/user/:id', optionalAuth, TweetController.getUserTweets);
+
+// Get tweet by id
 router.get('/:id', optionalAuth, TweetController.getTweet);
 
 // Protected routes (require authentication)
 router.use(authenticate);
 
-// Tweet CRUD operations
+// Create tweet
 router.post('/', TweetController.createTweet);
+
+// Update tweet
 router.put('/:id', TweetController.updateTweet);
+
 router.delete('/:id', TweetController.deleteTweet);
 
+// Delete tweet
 // Following tweets (requires authentication)
 router.get('/following', TweetController.getFollowingTweets);
 
