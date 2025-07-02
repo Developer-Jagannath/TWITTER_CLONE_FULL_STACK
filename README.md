@@ -93,6 +93,20 @@ npm start
 
 Create a `.env` file in the root directory with the following variables:
 
+### Required Variables
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Secret key for JWT tokens
+- `JWT_REFRESH_SECRET`: Secret key for JWT refresh tokens
+
+### AWS S3 Configuration (for image uploads)
+- `AWS_ACCESS_KEY_ID`: Your AWS access key ID
+- `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
+- `AWS_REGION`: AWS region (default: us-east-1)
+- `AWS_S3_BUCKET`: S3 bucket name for storing images
+- `AWS_S3_ENDPOINT`: Optional - for S3-compatible services like MinIO
+
+### Optional Variables
+
 ```env
 # Server Configuration
 NODE_ENV=development
@@ -166,6 +180,51 @@ To use Gmail for sending emails (OTP, welcome emails, etc.), you need to set up 
 
 **Note**: The email service is optional. If email credentials are not provided or invalid, the application will continue to work without email functionality (registration, login, etc. will still work, but no emails will be sent).
 
+### AWS S3 Setup for Image Uploads
+
+The application uses AWS S3 for storing uploaded images. To set up S3:
+
+1. **Create an AWS Account** (if you don't have one)
+2. **Create an S3 Bucket**:
+   - Go to AWS S3 Console
+   - Create a new bucket with a unique name
+   - Configure bucket permissions (public read access for images)
+   - Enable CORS if needed for web applications
+
+3. **Create IAM User**:
+   - Go to AWS IAM Console
+   - Create a new user with programmatic access
+   - Attach the `AmazonS3FullAccess` policy (or create a custom policy with minimal permissions)
+   - Save the Access Key ID and Secret Access Key
+
+4. **Configure Environment Variables**:
+   ```env
+   AWS_ACCESS_KEY_ID=your-access-key-id
+   AWS_SECRET_ACCESS_KEY=your-secret-access-key
+   AWS_REGION=us-east-1
+   AWS_S3_BUCKET=your-bucket-name
+   ```
+
+5. **Bucket CORS Configuration** (if needed for web apps):
+   ```json
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+       "AllowedOrigins": ["*"],
+       "ExposeHeaders": []
+     }
+   ]
+   ```
+
+**Alternative**: For local development, you can use MinIO (S3-compatible service):
+   ```env
+   AWS_S3_ENDPOINT=http://localhost:9000
+   AWS_ACCESS_KEY_ID=minioadmin
+   AWS_SECRET_ACCESS_KEY=minioadmin
+   AWS_S3_BUCKET=your-bucket-name
+   ```
+
 ## API Endpoints
 
 ### Public Endpoints
@@ -199,6 +258,18 @@ To use Gmail for sending emails (OTP, welcome emails, etc.), you need to set up 
 - `GET /api/tweet/public?page=1&limit=10` - Get public tweets
 - `GET /api/tweet/following?page=1&limit=10` - Get tweets from followed users (protected)
 - `GET /api/tweet/user/:id?page=1&limit=10` - Get user's tweets
+
+### Image Upload Endpoints
+- `POST /api/uploads/profile` - Upload profile image (protected, multipart/form-data)
+- `POST /api/uploads/post` - Upload post image (protected, multipart/form-data)
+
+**Image Upload Details:**
+- **File Field**: `image`
+- **Max Size**: 5MB
+- **Supported Formats**: JPEG, PNG, GIF, WebP
+- **Processing**: Automatic compression and conversion to WebP
+- **Storage**: AWS S3 with organized folder structure
+- **Response**: Returns image URL and metadata
 
 ### Example Endpoints
 - `GET /api/example/validate` - Validation error example
@@ -378,6 +449,16 @@ curl -X GET http://localhost:3000/api/tweet/following?page=1&limit=10 \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # Get user's tweets
+
+# Upload profile image
+curl -X POST http://localhost:3000/api/uploads/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "image=@/path/to/profile-image.jpg"
+
+# Upload post image
+curl -X POST http://localhost:3000/api/uploads/post \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "image=@/path/to/post-image.png"
 curl -X GET http://localhost:3000/api/tweet/user/USER_ID?page=1&limit=10
 ```
 

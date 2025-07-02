@@ -1,5 +1,5 @@
 import { app } from "./app";
-import { config } from "./config";
+import { config } from "./config/config";
 import { testDatabaseConnection } from './config/database';
 
 
@@ -24,6 +24,7 @@ const initializeApp = async () => {
       console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
       console.log(`👥 User endpoints: http://localhost:${PORT}/api/user`);
       console.log(`🐦 Tweet endpoints: http://localhost:${PORT}/api/tweet`);
+      console.log(`📸 Image upload endpoints: http://localhost:${PORT}/api/uploads`);
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);
