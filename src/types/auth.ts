@@ -56,6 +56,7 @@ export interface LogoutRequest {
 // Response types
 export interface AuthResponse {
   success: true;
+  message?: string;
   data: {
     user: Omit<User, 'password'>;
     accessToken: string;

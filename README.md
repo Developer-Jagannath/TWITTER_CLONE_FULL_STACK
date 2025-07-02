@@ -91,27 +91,61 @@ npm start
 
 ## Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory with the following variables:
 
 ```env
-# Application
+# Server Configuration
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=*
 
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/twitter_clone
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/twitter_clone"
 
-# JWT
-JWT_ACCESS_TOKEN_SECRET=your-super-secret-access-token-key
-JWT_REFRESH_TOKEN_SECRET=your-super-secret-refresh-token-key
-JWT_ACCESS_TOKEN_EXPIRY=15m
-JWT_REFRESH_TOKEN_EXPIRY=7d
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
 
-# Email (for OTP and notifications)
+# Email Configuration (for OTP and notifications)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
+EMAIL_FROM=your-email@gmail.com
+
+# OTP Configuration
+OTP_EXPIRES_IN=10m
+OTP_LENGTH=6
+
+# Security Configuration
+BCRYPT_ROUNDS=12
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Logging Configuration
+LOG_LEVEL=debug
+LOG_FILE=logs/app.log
+
+# File Upload Configuration
+MAX_FILE_SIZE=5242880
+UPLOAD_PATH=uploads
+ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/gif,image/webp
+
+# API Configuration
+API_PREFIX=/api
+API_VERSION=v1
 ```
+
+**Required Variables:**
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Secret key for JWT access tokens
+- `JWT_REFRESH_SECRET`: Secret key for JWT refresh tokens
+
+**Optional Variables:**
+- All other variables have sensible defaults
+- Email configuration is optional (service will be disabled if not provided)
 
 ### Gmail Setup for Email Service
 

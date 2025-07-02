@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database';
+import { config } from '../config/config';
 import { JWTService } from './jwtService';
 import { OTPService } from './otpService';
 import { EmailService } from './emailService';
@@ -25,7 +26,7 @@ import {
 } from '../errors/AppError';
 
 export class AuthService {
-  private static readonly SALT_ROUNDS = 12;
+  private static readonly SALT_ROUNDS = config.bcryptRounds;
 
   // Register new user
   static async register(userData: RegisterRequest): Promise<AuthResponse> {
@@ -91,7 +92,6 @@ export class AuthService {
       try {
         await EmailService.sendWelcomeEmail(user.email, user.username);
       } catch (error) {
-        console.error('Failed to send welcome email:', error);
         // Don't throw error as registration should still succeed
       }
 
@@ -100,6 +100,7 @@ export class AuthService {
 
       return {
         success: true,
+        message: 'Registration successful! Welcome to Twitter Clone.',
         data: {
           user: userWithoutPassword,
           accessToken,
@@ -165,6 +166,7 @@ export class AuthService {
 
       return {
         success: true,
+        message: 'Login successful! Welcome back.',
         data: {
           user: userWithoutPassword,
           accessToken,
@@ -259,7 +261,7 @@ export class AuthService {
       try {
         await EmailService.sendPasswordChangedEmail(user.email, user.username);
       } catch (error) {
-        console.error('Failed to send password changed email:', error);
+        // Continue silently if email fails
       }
 
       return {

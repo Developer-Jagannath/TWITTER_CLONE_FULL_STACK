@@ -32,17 +32,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Debug middleware to log all requests
-app.use((req, res, next) => {
-  console.log('🌐 Incoming request:', {
-    method: req.method,
-    url: req.url,
-    originalUrl: req.originalUrl,
-    path: req.path,
-    params: req.params,
-    query: req.query
-  });
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log('🌐 Incoming request:', {
+//     method: req.method,
+//     url: req.url,
+//     originalUrl: req.originalUrl,
+//     path: req.path,
+//     params: req.params,
+//     query: req.query
+//   });
+//   next();
+// });
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -99,14 +99,7 @@ app.use('/api/user', userRouter);
 // Tweet routes
   app.use('/api/tweet', tweetRouter);
 
-// Debug: Log all registered routes
-app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) {
-    console.log(`${Object.keys(middleware.route.methods).join(',').toUpperCase()} ${middleware.route.path}`);
-  } else if (middleware.name === 'router') {
-    console.log(`Router: ${middleware.regexp}`);
-  }
-}); 
+ 
 
 // 404 handler for undefined routes
 app.use('*', notFoundHandler);

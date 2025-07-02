@@ -1,10 +1,11 @@
 import { prisma } from '../config/database';
+import { config } from '../config/config';
 import { OTPData } from '../types/auth';
 import { BadRequestError, AuthenticationError } from '../errors/AppError';
 
 export class OTPService {
-  private static readonly OTP_LENGTH = 6;
-  private static readonly OTP_EXPIRY = 10 * 60; // 10 minutes in seconds
+  private static readonly OTP_LENGTH = config.otpLength;
+  private static readonly OTP_EXPIRY = parseInt(config.otpExpiresIn) * 60; // Convert to seconds
   private static readonly MAX_ATTEMPTS = 3;
 
   // Generate 6-digit OTP
@@ -118,7 +119,7 @@ export class OTPService {
         where: { email }
       });
     } catch (error) {
-      console.error('Failed to delete OTP:', error);
+      // Continue silently if cleanup fails
     }
   }
 
@@ -134,7 +135,7 @@ export class OTPService {
         }
       });
     } catch (error) {
-      console.error('Failed to cleanup expired OTPs:', error);
+      // Continue silently if cleanup fails
     }
   }
 

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { config } from '../config';
+import { config } from '../config/config';
 import { EmailData } from '../types/auth';
 import { BadRequestError } from '../errors/AppError';
 
@@ -13,26 +13,24 @@ export class EmailService {
     }
 
     // Check if email credentials are provided
-    if (!config.email.user || !config.email.pass) {
-      console.log('⚠️ Email credentials not provided, email service disabled');
+    if (!config.emailUser || !config.emailPass) {
       return null;
     }
 
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: config.emailHost,
+      port: config.emailPort,
+      secure: false, // true for 465, false for other ports
       auth: {
-        user: config.email.user,
-        pass: config.email.pass
+        user: config.emailUser,
+        pass: config.emailPass
       }
     });
 
     // Verify connection
     try {
       await this.transporter.verify();
-      console.log('✅ Email service connected successfully');
     } catch (error) {
-      console.error('❌ Email service connection failed:', error);
-      console.log('⚠️ Email service disabled, continuing without email functionality');
       this.transporter = null;
       return null;
     }
@@ -46,12 +44,11 @@ export class EmailService {
       const transporter = await this.getTransporter();
       
       if (!transporter) {
-        console.log('⚠️ Email service not available, skipping email send');
         return;
       }
       
       const mailOptions = {
-        from: `"Twitter Clone" <${config.email.user}>`,
+        from: `"Twitter Clone" <${config.emailUser}>`,
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,
@@ -59,12 +56,9 @@ export class EmailService {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`✅ Email sent successfully to ${emailData.to}`);
       return;
     } catch (error) {
-      console.error('Failed to send email:', error);
-      // Don't throw error, just log it and continue
-      console.log('⚠️ Email sending failed, but continuing with operation');
+      // Don't throw error, just continue silently
       return;
     }
   }

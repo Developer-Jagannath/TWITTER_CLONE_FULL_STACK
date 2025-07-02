@@ -113,7 +113,7 @@ export const logError = (
     ...context
   };
   
-  console.error('Error logged:', errorInfo);
+  // Error logged silently - can be replaced with proper logging service
 };
 
 // Async route wrapper with better typing

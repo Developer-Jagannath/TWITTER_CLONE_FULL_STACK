@@ -29,11 +29,13 @@ export interface UpdateTweetRequest {
 
 export interface TweetResponse {
   success: boolean;
+  message?: string;
   data: Tweet;
 }
 
 export interface PaginatedTweetsResponse {
   success: boolean;
+  message?: string;
   data: {
     tweets: Tweet[];
     pagination: {

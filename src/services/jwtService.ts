@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { config } from '../config';
+import { config } from '../config/config';
 import { JWTPayload, RefreshTokenPayload } from '../types/auth';
 import { AuthenticationError, BadRequestError } from '../errors/AppError';
 
@@ -8,8 +8,8 @@ export class JWTService {
   // Generate access token
   static generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
     try {
-      return jwt.sign(payload, config.jwt.accessTokenSecret, {
-        expiresIn: config.jwt.accessTokenExpiry as any,
+      return jwt.sign(payload, config.jwtSecret, {
+        expiresIn: config.jwtExpiresIn as any,
         issuer: 'twitter-clone-api',
         audience: 'twitter-clone-users'
       });
@@ -27,8 +27,8 @@ export class JWTService {
         userId
       };
 
-      const token = jwt.sign(payload, config.jwt.refreshTokenSecret, {
-        expiresIn: config.jwt.refreshTokenExpiry as any,
+      const token = jwt.sign(payload, config.jwtRefreshSecret, {
+        expiresIn: config.jwtRefreshExpiresIn as any,
         issuer: 'twitter-clone-api',
         audience: 'twitter-clone-users'
       });
@@ -42,7 +42,7 @@ export class JWTService {
   // Verify access token
   static verifyAccessToken(token: string): JWTPayload {
     try {
-      const decoded = jwt.verify(token, config.jwt.accessTokenSecret, {
+      const decoded = jwt.verify(token, config.jwtSecret, {
         issuer: 'twitter-clone-api',
         audience: 'twitter-clone-users'
       }) as JWTPayload;
@@ -62,7 +62,7 @@ export class JWTService {
   // Verify refresh token
   static verifyRefreshToken(token: string): RefreshTokenPayload {
     try {
-      const decoded = jwt.verify(token, config.jwt.refreshTokenSecret, {
+      const decoded = jwt.verify(token, config.jwtRefreshSecret, {
         issuer: 'twitter-clone-api',
         audience: 'twitter-clone-users'
       }) as RefreshTokenPayload;
