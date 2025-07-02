@@ -19,7 +19,7 @@ const initializeApp = async () => {
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📱 Environment: ${config.nodeEnv}`);
+      console.log(`📱 Environment database: ${config.nodeEnv}`);
       console.log(`🌐 URL: http://localhost:${PORT}`);
       console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
       console.log(`👥 User endpoints: http://localhost:${PORT}/api/user`);
