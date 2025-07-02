@@ -16,9 +16,19 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration
+const allowedOrigins = [
+  "https://twitter-clone-front-end-delta.vercel.app"
+];
+
 app.use(cors({
-  origin: config.corsOrigin || '*',
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
 
 // Logging middleware
