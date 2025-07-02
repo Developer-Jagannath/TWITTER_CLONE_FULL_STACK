@@ -18,7 +18,6 @@ export class UserController {
   static followUser = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id: userIdToFollow } = req.params;
     const currentUserId = req.user?.id;
-    console.log("currentUserId", currentUserId);
     if (!currentUserId) {
       throw new AuthenticationError('User not authenticated');
     }
@@ -88,7 +87,6 @@ export class UserController {
   static getUserProfile = asyncHandler(async (req: Request, res: Response) => {
 
     const { id: userId } = req.params;
-    console.log('👤 User ID from params:', userId);
 
     if (!userId) {
       throw new Error('User ID is required');

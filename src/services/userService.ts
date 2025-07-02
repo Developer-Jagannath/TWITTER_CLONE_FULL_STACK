@@ -52,7 +52,6 @@ export class UserService {
         tweetsCount = await prismaClient.tweet.count({ where: { userId } });
       } catch (tweetError) {
         // If tweets table doesn't exist yet, just use 0
-        console.log('Tweets table not available yet, using count 0');
         tweetsCount = 0;
       }
       

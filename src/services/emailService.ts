@@ -60,10 +60,12 @@ export class EmailService {
 
       await transporter.sendMail(mailOptions);
       console.log(`✅ Email sent successfully to ${emailData.to}`);
+      return;
     } catch (error) {
       console.error('Failed to send email:', error);
       // Don't throw error, just log it and continue
       console.log('⚠️ Email sending failed, but continuing with operation');
+      return;
     }
   }
 

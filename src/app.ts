@@ -7,7 +7,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { exampleRouter } from './routes/example';
 import { authRouter } from './routes/auth';
 import userRouter from './routes/user';
-// import tweetRouter from './routes/tweet';
+import tweetRouter from './routes/tweet';
 
 const app = express();
 
@@ -63,6 +63,30 @@ app.get('/api', (req: Request, res: Response) => {
   });
 });
 
+// Debug endpoint to check registered routes
+app.get('/api/debug/routes', (req: Request, res: Response) => {
+  const routes: any[] = [];
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      routes.push({
+        type: 'router',
+        regexp: middleware.regexp.toString()
+      });
+    }
+  });
+  res.json({ routes });
+});
+
+// Test endpoint to see if basic routing works
+app.get('/api/test', (req: Request, res: Response) => {
+  res.json({ message: 'Basic routing is working!' });
+});
+
 // Example routes with error handling
 app.use('/api/example', exampleRouter);
 
@@ -72,8 +96,17 @@ app.use('/api/auth', authRouter);
 // User routes (follow/unfollow, profiles)
 app.use('/api/user', userRouter);
 
-// Tweet routes - TEMPORARILY DISABLED
-// app.use('/api/tweet', tweetRouter);
+// Tweet routes
+  app.use('/api/tweet', tweetRouter);
+
+// Debug: Log all registered routes
+app._router.stack.forEach((middleware: any) => {
+  if (middleware.route) {
+    console.log(`${Object.keys(middleware.route.methods).join(',').toUpperCase()} ${middleware.route.path}`);
+  } else if (middleware.name === 'router') {
+    console.log(`Router: ${middleware.regexp}`);
+  }
+}); 
 
 // 404 handler for undefined routes
 app.use('*', notFoundHandler);
