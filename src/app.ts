@@ -8,7 +8,6 @@ import { exampleRouter } from './routes/example';
 import { authRouter } from './routes/auth';
 import userRouter from './routes/user';
 import tweetRouter from './routes/tweet';
-import imageUploadRouter from './routes/imageUpload';
 import path from 'path';
 
 const app = express();
@@ -101,16 +100,7 @@ app.use('/api/user', userRouter);
 // Tweet routes
 app.use('/api/tweet', tweetRouter);
 
-// Note: Images are now served from AWS S3, not local storage
-
-// Image upload routes
-app.use('/api/uploads', imageUploadRouter);
-console.log('✅ Image upload routes registered at /api/uploads');
-
-// Test route to verify uploads path
-app.get('/api/uploads/test-simple', (req, res) => {
-  res.json({ message: 'Simple uploads route is working!' });
-});
+// Note: Image uploads are now handled directly in tweet creation with Cloudinary
 
 // 404 handler for undefined routes
 app.use('*', notFoundHandler);

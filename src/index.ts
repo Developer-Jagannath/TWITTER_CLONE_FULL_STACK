@@ -24,7 +24,7 @@ const initializeApp = async () => {
       console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
       console.log(`👥 User endpoints: http://localhost:${PORT}/api/user`);
       console.log(`🐦 Tweet endpoints: http://localhost:${PORT}/api/tweet`);
-      console.log(`📸 Image upload endpoints: http://localhost:${PORT}/api/uploads`);
+      console.log(`📸 Image uploads integrated with tweet creation`);
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);

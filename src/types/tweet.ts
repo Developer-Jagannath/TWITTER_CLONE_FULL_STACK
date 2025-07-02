@@ -1,6 +1,7 @@
 export interface Tweet {
   id: string;
   content: string;
+  imageUrl?: string | null;
   userId: string;
   user: {
     id: string;
@@ -20,6 +21,7 @@ export interface Tweet {
 export interface CreateTweetRequest {
   content: string;
   isPublic?: boolean;
+  imageUrl?: string | undefined;
 }
 
 export interface UpdateTweetRequest {

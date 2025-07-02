@@ -1,23 +1,27 @@
 import { Request, Response } from 'express';
 import { TweetService } from '../services/tweetService';
+import { CloudinaryService } from '../services/cloudinaryService';
 import { asyncHandler } from '../middleware/errorHandler';
 import { validateRequest } from '../utils/errorUtils';
 import { AuthenticationError } from '../errors';
+import fs from 'fs';
 
-// Extend Request type to include user
+// Extend Request type to include user and file
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
     username: string;
   };
+  file?: Express.Multer.File | undefined;
 }
 
 export class TweetController {
-  // Create a new tweet
+  // Create a new tweet with optional image upload
   static createTweet = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const currentUserId = req.user?.id;
     const { content, isPublic } = req.body;
+    let imageUrl: string | undefined;
 
     if (!currentUserId) {
       throw new AuthenticationError('User not authenticated');
@@ -25,7 +29,26 @@ export class TweetController {
 
     validateRequest(req, ['content']);
 
-    const result = await TweetService.createTweet(currentUserId, { content, isPublic });
+    // Handle image upload if file is present
+    if (req.file) {
+      try {
+        const uploadResult = await CloudinaryService.uploadImage(req.file.path, 'tweets');
+        imageUrl = uploadResult.secure_url;
+        
+        // Clean up temporary file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      } catch (error) {
+        // Clean up temporary file on error
+        if (req.file.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        throw error;
+      }
+    }
+
+    const result = await TweetService.createTweet(currentUserId, { content, isPublic, imageUrl: imageUrl || undefined });
     res.status(201).json(result);
   });
 

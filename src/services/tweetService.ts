@@ -13,7 +13,8 @@ export class TweetService {
         data: {
           content: tweetData.content,
           userId,
-          isPublic: tweetData.isPublic ?? true
+          isPublic: tweetData.isPublic ?? true,
+          imageUrl: tweetData.imageUrl || null
         },
         include: {
           user: {

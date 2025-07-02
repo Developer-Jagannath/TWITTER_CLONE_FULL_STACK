@@ -43,12 +43,10 @@ interface Config {
   uploadPath: string;
   allowedImageTypes: string[];
   
-  // AWS S3 Configuration
-  awsAccessKeyId: string;
-  awsSecretAccessKey: string;
-  awsRegion: string;
-  awsS3Bucket: string;
-  awsS3Endpoint: string | undefined;
+  // Cloudinary Configuration
+  cloudinaryCloudName: string;
+  cloudinaryApiKey: string;
+  cloudinaryApiSecret: string;
   
   // API Configuration
   apiPrefix: string;
@@ -108,12 +106,10 @@ export const config: Config = {
   uploadPath: process.env.UPLOAD_PATH || 'uploads',
   allowedImageTypes: (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/png,image/gif,image/webp').split(','),
   
-  // AWS S3 Configuration
-  awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-  awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  awsRegion: process.env.AWS_REGION || 'us-east-1',
-  awsS3Bucket: process.env.AWS_S3_BUCKET || '',
-  awsS3Endpoint: process.env.AWS_S3_ENDPOINT || undefined,
+  // Cloudinary Configuration
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || '',
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || '',
   
   // API Configuration
   apiPrefix: process.env.API_PREFIX || '/api',
