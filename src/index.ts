@@ -14,12 +14,16 @@ const initializeApp = async () => {
       console.error('Failed to connect to database');
       process.exit(1);
     }
+    console.log('✅ Database connection successful!');
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Environment: ${config.nodeEnv}`);
-      console.log(`URL: http://localhost:${PORT}`);
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📱 Environment: ${config.nodeEnv}`);
+      console.log(`🌐 URL: http://localhost:${PORT}`);
+      console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+      console.log(`👥 User endpoints: http://localhost:${PORT}/api/user`);
+      console.log(`🐦 Tweet endpoints: http://localhost:${PORT}/api/tweet`);
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);
